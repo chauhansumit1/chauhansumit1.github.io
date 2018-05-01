@@ -1,1 +1,35 @@
-Hello worl asasa d
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Box Files</title>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+</head>
+<body>
+  <div ng-app="myApp" ng-controller="myCtrl">   
+        State:           
+            <input type="text" ng-model="stateName">
+    <br> 
+    <canvas id="myCanvas" width="12" height="11" style="border: 1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.
+    </canvas>
+  </div>
+   <script>
+     var app = angular.module('myApp', []);
+     app.controller('myCtrl', function ($scope, $http) {
+       $scope.stateName = "Test";
+       $scope.val=12;
+       var c = document.getElementById("myCanvas");   var ctx = c.getContext("2d");
+       var img = new Image();
+       var sacle = 1.0;
+       img.onload = function () {
+         c.setAttribute("width", img.width);
+         c.setAttribute("height", img.height);
+         ctx.drawImage(img, 0, 0);
+       };
+       img.src = 'https://chauhansumit1.github.io/Capture.PNG';           
+     });
+  </script>
+</body>
+</html>

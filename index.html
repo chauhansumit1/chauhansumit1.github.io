@@ -1,47 +1,159 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>Box Files</title>
-  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Box Files</title>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
 </head>
 <body>
-  <div ng-app="myApp" ng-controller="myCtrl">   
-     <div>   State:           
+    <div ng-app="myApp" ng-controller="myCtrl">
+        <div>
+            State:
             <input type="text" ng-model="stateName">
+        </div>
+        <div>
+            <form>
+                <input type="radio" ng-model="mode" value="A1">A1
+                <input type="radio" ng-model="mode" value="A2">A2
+                <input type="radio" ng-model="mode" value="A3">A3
+            </form>
+        </div>
+        <div>
+            <span>{{mode}}</span>
+        </div>
+        <canvas id="myCanvas" width="12" height="11" style="border: 1px solid #d3d3d3;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+        <img id="background" src="" style="display: none" />
     </div>
-     <div>
-       <form>
-         <input type="radio" ng-model="mode" value="A1">A1
-         <input type="radio" ng-model="mode" value="A2">A2
-         <input type="radio" ng-model="mode" value="A3">A3
-       </form>
-    </div>
-    <div>
-      <span>{{mode}}</span>
-    </div>
-    <canvas id="myCanvas" width="12" height="11" style="border: 1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.
-    </canvas>
-  </div>
-   <script>
-     var app = angular.module('myApp', []);
-     app.controller('myCtrl', function ($scope, $http) {
-       $scope.stateName = "Test"; 
-       $scope.mode="A2";
-       $scope.selectedItem = {};
-       $scope.items = [{"name":"A1","Width":100,"Height":100},{"name":"C1","Width":100,"Height":100},{"name":"W1","Width":100,"Height":100}];
-       var c = document.getElementById("myCanvas");   var ctx = c.getContext("2d");
-       var img = new Image();
-       var sacle = 1.0;
-       img.onload = function () {
-         c.setAttribute("width", img.width);
-         c.setAttribute("height", img.height);
-         ctx.drawImage(img, 0, 0);
-       };
-       img.src = 'https://chauhansumit1.github.io/Capture.PNG';           
-     });
-  </script>
+    <script>
+        var app = angular.module('myApp', []);
+        var mouseIsDown = false;
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+        app.controller('myCtrl', function ($scope, $http) {
+            $scope.stateName = "Test";
+            $scope.mode = "A2";
+            $scope.selectedItem = {};
+            $scope.boxes = [{ "X": 100, "Y": 100, "W": 100, "H": 200, "Text": "A1" }, { "X": 200, "Y": 200, "W": 100, "H": 200, "Text": "A2" }];
+            $scope.imageSrc = "https://chauhansumit1.github.io/Capture.PNG";
+            $scope.items = [{ "name": "A1", "Width": 100, "Height": 100 }, { "name": "C1", "Width": 100, "Height": 100 }, { "name": "W1", "Width": 100, "Height": 100 }];
+            var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d");
+            var id = 1;
+            drag = {};
+            canvas.onmousedown = function (e) {
+                if (e.button == 0) {
+                    drag.x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
+                    drag.y = e.y + $(window).scrollTop() - canvas.offsetTop;
+                    mouseIsDown = true;
+                    //console.log(e.x + " " + e.y + " " + canvas.offsetLeft + " " + canvas.offsetTop);
+                }
+            }
+
+
+            canvas.onmouseup = function (e) {
+                if (e.button == 0) {
+                    if (mouseIsDown) {
+                        mouseIsDown = false;
+                        mouseClick(e);
+                    }
+                }
+                else if (e.button == 2) {
+                    rightClick(e);
+                }
+            }
+
+            canvas.onmousemove = function (e) { 
+                if (!mouseIsDown) return;
+                drag.xx = e.x + $(window).scrollLeft() - canvas.offsetLeft;
+                drag.yy = e.y + $(window).scrollTop() - canvas.offsetTop;
+                render();
+                ctx.fillStyle = "#E5E059";
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(drag.x, drag.y, drag.xx - drag.x, drag.yy - drag.y);
+                ctx.globalAlpha = 1.0;
+                //render();
+                return false;
+            }
+            function rightClick(e) {
+                x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
+                y = e.y + $(window).scrollTop() - canvas.offsetTop;
+                if ($scope.selectedMode == "Area") {
+                    for (r = 0; r < $scope.selectedBox.Rects.length; r++) {
+                        if (IsInRect(x, y, $scope.selectedBox.Rects[r].X, $scope.selectedBox.Rects[r].Y, $scope.selectedBox.Rects[r].W, $scope.selectedBox.Rects[r].H, 0)) {
+                            $scope.selectedBox.Rects.splice(r, 1);
+                            break;
+                        }
+                    }
+                }
+                else {
+                    for (r = 0; r < $scope.selectedBox.Rects.length; r++) {
+                        if (IsInRect(x, y, $scope.selectedBox.Rects[r].X, $scope.selectedBox.Rects[r].Y, $scope.selectedBox.Rects[r].W, $scope.selectedBox.Rects[r].H, 0)) {
+                            for (d = 0; d < $scope.selectedBox.Rects[r].Dividers.length; d++) {
+                                if ($scope.selectedBox.Rects[r].Dividers[d] > x - 2 && $scope.selectedBox.Rects[r].Dividers[d] < x + 2) {
+                                    $scope.selectedBox.Rects[r].Dividers.splice(d, 1);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                render();
+                return false;
+            }
+            function mouseClick(e) {
+                x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
+                y = e.y + $(window).scrollTop() - canvas.offsetTop;
+
+                if (drag.xx > drag.x + 4) {
+                    var rect = {
+                        "Name": "box" + id, "Text": "", "X": drag.x, "Y": drag.y, "W": drag.xx + 1 - drag.x, "H": drag.yy + 1 - drag.y 
+                    };
+                    $scope.boxes.push(rect);
+                    drag.xx = 0;
+                    drag.yy = 0;
+                    id++;
+                }
+                render();
+            }
+
+            function render() {
+                var img = document.getElementById("background");
+                if (!img.src.endsWith($scope.imageSrc)) {
+                    img.onload = function () {
+                        canvas.setAttribute("width", img.width);
+                        canvas.setAttribute("height", img.height);
+                        ctx.drawImage(img, 0, 0);
+                        renderRest();
+                    };
+                    img.src = $scope.imageSrc;
+                }
+                else {
+                    canvas.setAttribute("width", img.width);
+                    canvas.setAttribute("height", img.height);
+                    ctx.drawImage(img, 0, 0);
+                    renderRest();
+                }
+            }
+            function renderRest() {
+                for (r = 0; r < $scope.boxes.length; r++) {
+                    var rect = $scope.boxes[r];
+                    //console.log(rect.name + " " + rect.x + " " + rect.y + " " + rect.w + " " + rect.h);
+                    ctx.fillStyle = "#0000FF";
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillRect(rect.X, rect.Y, rect.W, rect.H);
+                    ctx.globalAlpha = 1.0;
+                    ctx.font = "14px Arial";
+                    ctx.fillStyle = "#ff0000";
+                    ctx.fillText(rect.Text, rect.X + 1, rect.Y);
+                }
+            }
+            render();
+        });
+    </script>
 </body>
 </html>

@@ -9,17 +9,29 @@
 </head>
 <body>
   <div ng-app="myApp" ng-controller="myCtrl">   
-        State:           
+     <div>   State:           
             <input type="text" ng-model="stateName">
-    <br> 
+    </div>
+     <div>
+       <form>
+         <input type="radio" ng-model="mode" value="A1">A1
+         <input type="radio" ng-model="mode" value="A2">A2
+         <input type="radio" ng-model="mode" value="A3">A3
+       </form>
+    </div>
+    <div>
+      <span>{{mode}}</span>
+    </div>
     <canvas id="myCanvas" width="12" height="11" style="border: 1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.
     </canvas>
   </div>
    <script>
      var app = angular.module('myApp', []);
      app.controller('myCtrl', function ($scope, $http) {
-       $scope.stateName = "Test";
-       $scope.val=12;
+       $scope.stateName = "Test"; 
+       $scope.mode="A2";
+       $scope.selectedItem = {};
+       $scope.items = [{"name":"A1","Width":100,"Height":100},{"name":"C1","Width":100,"Height":100},{"name":"W1","Width":100,"Height":100}];
        var c = document.getElementById("myCanvas");   var ctx = c.getContext("2d");
        var img = new Image();
        var sacle = 1.0;

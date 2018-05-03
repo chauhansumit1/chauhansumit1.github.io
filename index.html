@@ -11,13 +11,41 @@
     <div ng-app="myApp" ng-controller="myCtrl">
         <div>
             State:
-            <input type="text" ng-model="stateName">
+            <input type="text" ng-model="stateName"/><button ng-click="reset()">Reset</button><input type="checkbox" ng-checked="all">DefSize
+          <button ng-click="previous()">Previus</button>
+          <button ng-click="next()">Next</button>
         </div>
         <div>
-            <form>
-                <input type="radio" ng-model="mode" value="A1">A1
-                <input type="radio" ng-model="mode" value="A2">A2
-                <input type="radio" ng-model="mode" value="A3">A3
+            <form><input type="radio" ng-model="selectedItem" value="c1">c1
+              <input type="radio" ng-model="selectedItem" value="c2">c2
+              <input type="radio" ng-model="selectedItem" value="c3">c3
+              <input type="radio" ng-model="selectedItem" value="a1">a1
+              <input type="radio" ng-model="selectedItem" value="a2">a2
+              <input type="radio" ng-model="selectedItem" value="a3">a3
+              <input type="radio" ng-model="selectedItem" value="m1">m1
+              <input type="radio" ng-model="selectedItem" value="m2">m2
+              <input type="radio" ng-model="selectedItem" value="m3">m3
+              <input type="radio" ng-model="selectedItem" value="w1">w1
+              <input type="radio" ng-model="selectedItem" value="w2">w2
+              <input type="radio" ng-model="selectedItem" value="w3">w3
+              <input type="radio" ng-model="selectedItem" value="x1">x1
+              <input type="radio" ng-model="selectedItem" value="x2">x2
+              <input type="radio" ng-model="selectedItem" value="x3">x3
+              <input type="radio" ng-model="selectedItem" value="i1">i1
+              <input type="radio" ng-model="selectedItem" value="i2">i2
+              <input type="radio" ng-model="selectedItem" value="i3">i3
+              <input type="radio" ng-model="selectedItem" value="d1">d1
+              <input type="radio" ng-model="selectedItem" value="d2">d2
+              <input type="radio" ng-model="selectedItem" value="d3">d3
+              <input type="radio" ng-model="selectedItem" value="t1">t1
+              <input type="radio" ng-model="selectedItem" value="t2">t2
+              <input type="radio" ng-model="selectedItem" value="t3">t3
+              <input type="radio" ng-model="selectedItem" value="s">s
+              <input type="radio" ng-model="selectedItem" value="b1">b1
+              <input type="radio" ng-model="selectedItem" value="b2">b2
+              <input type="radio" ng-model="selectedItem" value="e">e
+              
+
             </form>
         </div>
         <div>
@@ -28,23 +56,58 @@
         </canvas>
         <img id="background" src="" style="display: none" />
     </div>
-    <script>
+    <script>      
+        function IsInRect(x, y, left, top, width, height, delta) {
+          console.log(x +","+ y +","+ left +","+ top +","+ width +","+ height +","+ delta)
+          result= x > left - delta && x < left + width + delta && y > top && y < top + height + delta;
+          console.log(result);
+          return result;
+        }
         var app = angular.module('myApp', []);
         var mouseIsDown = false;
         var canvas = document.getElementById("myCanvas");
         var ctx = canvas.getContext("2d");
+      
+        localStorage.setItem("lastname", "Smith");
         app.controller('myCtrl', function ($scope, $http) {
-            $scope.stateName = "Test";
-            $scope.mode = "A2";
-            $scope.selectedItem = {};
-            $scope.boxes = [{ "X": 100, "Y": 100, "W": 100, "H": 200, "Text": "A1" }, { "X": 200, "Y": 200, "W": 100, "H": 200, "Text": "A2" }];
-            $scope.imageSrc = "https://chauhansumit1.github.io/Capture.PNG";
+            $scope.stateName = "Test"; 
+            $scope.selectedItem = "a1";
+            $scope.boxes =[];
+            $scope.images=["https://chauhansumit1.github.io/Capture.PNG","https://chauhansumit1.github.io/Capture2.PNG"];
+            $scope.selectedImageIndex=0;
             $scope.items = [{ "name": "A1", "Width": 100, "Height": 100 }, { "name": "C1", "Width": 100, "Height": 100 }, { "name": "W1", "Width": 100, "Height": 100 }];
             var c = document.getElementById("myCanvas");
             var ctx = c.getContext("2d");
             var id = 1;
             drag = {};
-            canvas.onmousedown = function (e) {
+            $scope.reset = function () {
+              $scope.boxes=[];
+              render();
+            }
+            
+            $scope.previous = function () {
+              $scope.selectedImageIndex--;
+              setImage();
+            }
+            
+            $scope.next = function () {
+              $scope.selectedImageIndex++;
+              setImage();
+            }
+            
+            function setImage(){
+              if( $scope.selectedImageIndex > -1 &&  $scope.selectedImageIndex < $scope.images.length)
+              {
+                $scope.imageSrc = $scope.images[ $scope.selectedImageIndex ];
+                if(localStorage.getItem($scope.imageSrc))
+                {
+                  $scope.boxes =JSON.parse(localStorage.getItem($scope.imageSrc));
+                } 
+                render();                
+              }
+            }
+          setImage();
+          canvas.onmousedown = function (e) {
                 if (e.button == 0) {
                     drag.x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
                     drag.y = e.y + $(window).scrollTop() - canvas.offsetTop;
@@ -52,8 +115,6 @@
                     //console.log(e.x + " " + e.y + " " + canvas.offsetLeft + " " + canvas.offsetTop);
                 }
             }
-
-
             canvas.onmouseup = function (e) {
                 if (e.button == 0) {
                     if (mouseIsDown) {
@@ -65,7 +126,6 @@
                     rightClick(e);
                 }
             }
-
             canvas.onmousemove = function (e) { 
                 if (!mouseIsDown) return;
                 drag.xx = e.x + $(window).scrollLeft() - canvas.offsetLeft;
@@ -79,31 +139,16 @@
                 return false;
             }
             function rightClick(e) {
-                x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
-                y = e.y + $(window).scrollTop() - canvas.offsetTop;
-                if ($scope.selectedMode == "Area") {
-                    for (r = 0; r < $scope.selectedBox.Rects.length; r++) {
-                        if (IsInRect(x, y, $scope.selectedBox.Rects[r].X, $scope.selectedBox.Rects[r].Y, $scope.selectedBox.Rects[r].W, $scope.selectedBox.Rects[r].H, 0)) {
-                            $scope.selectedBox.Rects.splice(r, 1);
-                            break;
-                        }
-                    }
+              x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
+              y = e.y + $(window).scrollTop() - canvas.offsetTop;
+              for (r = 0; r < $scope.boxes.length; r++) {
+                if (IsInRect(x, y, $scope.boxes[r].X, $scope.boxes[r].Y, $scope.boxes[r].W, $scope.boxes[r].H, 0)) {
+                  $scope.boxes.splice(r, 1);
+                  break;
                 }
-                else {
-                    for (r = 0; r < $scope.selectedBox.Rects.length; r++) {
-                        if (IsInRect(x, y, $scope.selectedBox.Rects[r].X, $scope.selectedBox.Rects[r].Y, $scope.selectedBox.Rects[r].W, $scope.selectedBox.Rects[r].H, 0)) {
-                            for (d = 0; d < $scope.selectedBox.Rects[r].Dividers.length; d++) {
-                                if ($scope.selectedBox.Rects[r].Dividers[d] > x - 2 && $scope.selectedBox.Rects[r].Dividers[d] < x + 2) {
-                                    $scope.selectedBox.Rects[r].Dividers.splice(d, 1);
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-                render();
-                return false;
+              } 
+              render();
+              return false;
             }
             function mouseClick(e) {
                 x = e.x + $(window).scrollLeft() - canvas.offsetLeft;
@@ -111,16 +156,37 @@
 
                 if (drag.xx > drag.x + 4) {
                     var rect = {
-                        "Name": "box" + id, "Text": "", "X": drag.x, "Y": drag.y, "W": drag.xx + 1 - drag.x, "H": drag.yy + 1 - drag.y 
+                        "Name": "box" + id, "Text": $scope.selectedItem , "X": drag.x, "Y": drag.y, "W": drag.xx + 1 - drag.x, "H": drag.yy + 1 - drag.y 
                     };
                     $scope.boxes.push(rect);
                     drag.xx = 0;
                     drag.yy = 0;
                     id++;
                 }
+                else
+                { 
+                  
+                  var rect = {
+                        "Name": "box" + id, "Text": $scope.selectedItem , "X":drag.x-10, "Y": drag.y-10, "W": 20, "H":20
+                    };
+                 if(drag.xx)
+                   {
+                     rect.X=((drag.x+drag.xx)/2)-10;
+                     rect.Y=((drag.y+drag.yy)/2)-10;
+                   } 
+                 console.log(rect.X);
+                 console.log(rect.Y);
+                 console.log(drag.x); 
+                 console.log(drag.xx); 
+                 console.log(drag.y); 
+                 console.log(drag.yy); 
+                    $scope.boxes.push(rect);
+                    drag.xx = 0;
+                    drag.yy = 0;
+                    id++;                  
+                }
                 render();
             }
-
             function render() {
                 var img = document.getElementById("background");
                 if (!img.src.endsWith($scope.imageSrc)) {
@@ -138,6 +204,7 @@
                     ctx.drawImage(img, 0, 0);
                     renderRest();
                 }
+              localStorage.setItem($scope.imageSrc,  JSON.stringify( $scope.boxes));
             }
             function renderRest() {
                 for (r = 0; r < $scope.boxes.length; r++) {
@@ -152,6 +219,7 @@
                     ctx.fillText(rect.Text, rect.X + 1, rect.Y);
                 }
             }
+          $('body').on('contextmenu', '#myCanvas', function(e){ return false; });
             render();
         });
     </script>
